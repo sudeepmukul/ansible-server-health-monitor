@@ -1,0 +1,49 @@
+SERVER HEALTH REPORT
+====================
+
+Server: server2
+IP Address: 192.168.64.2
+
+CPU: 20.8%
+RAM: 36%
+Disk: 32%
+Uptime: up 6 hours, 57 minutes
+
+SSH: OK
+Nginx: RUNNING
+Docker: RUNNING
+
+STATUS: WARNING
+
+ACTION: One or more health checks exceeded the defined thresholds
+
+Running Services:
+chrony.service
+containerd.service
+cron.service
+dbus.service
+docker.service
+fwupd.service
+getty@tty1.service
+ModemManager.service
+multipathd.service
+networkd-dispatcher.service
+nginx.service
+polkit.service
+rsyslog.service
+snap.microk8s.daemon-apiserver-kicker.service
+snap.microk8s.daemon-cluster-agent.service
+snap.microk8s.daemon-containerd.service
+snap.microk8s.daemon-k8s-dqlite.service
+snap.microk8s.daemon-kubelite.service
+snapd.service
+ssh.service
+systemd-journald.service
+systemd-logind.service
+systemd-networkd.service
+systemd-resolved.service
+systemd-udevd.service
+tailscaled.service
+udisks2.service
+unattended-upgrades.service
+user@1000.service

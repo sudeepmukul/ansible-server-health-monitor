@@ -1,0 +1,54 @@
+SERVER HEALTH REPORT
+====================
+
+Server: server1
+IP Address: 10.0.2.15
+
+CPU: 0.0%
+RAM: 28%
+Disk: 31%
+Uptime: up 12 minutes
+
+SSH: OK
+Nginx: RUNNING
+Docker: RUNNING
+
+STATUS: WARNING
+
+ACTION: One or more health checks exceeded the defined thresholds
+
+Running Services:
+accounts-daemon.service
+avahi-daemon.service
+chrony.service
+colord.service
+containerd.service
+cron.service
+cups-browsed.service
+cups.service
+dbus.service
+docker.service
+fwupd.service
+gdm.service
+ModemManager.service
+networkd-dispatcher.service
+NetworkManager.service
+nginx.service
+polkit.service
+power-profiles-daemon.service
+rsyslog.service
+rtkit-daemon.service
+snapd.service
+ssh.service
+switcheroo-control.service
+systemd-journald.service
+systemd-logind.service
+systemd-oomd.service
+systemd-resolved.service
+systemd-udevd.service
+tailscaled.service
+udisks2.service
+unattended-upgrades.service
+upower.service
+user@1000.service
+wpa_supplicant.service

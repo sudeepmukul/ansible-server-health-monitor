@@ -1,0 +1,217 @@
+---
+- name: Server Health Monitoring
+  hosts: servers
+  gather_facts: yes
+  become: yes
+
+  vars:
+    cpu_threshold: 80
+    ram_threshold: 80
+    disk_threshold: 20 
+
+  tasks:
+
+    # --------------------------------------------------
+    # CPU
+    # --------------------------------------------------
+    - name: Collect CPU usage
+      shell: |
+        top -bn1 | awk -F',' '/Cpu\(s\)/ {
+          gsub(/ /,"",$4);
+          sub(/id/,"",$4);
+          printf "%.1f", 100-$4
+        }'
+      register: cpu_usage
+      changed_when: false
+
+    # --------------------------------------------------
+    # RAM
+    # --------------------------------------------------
+    - name: Collect RAM usage
+      shell: |
+        free | awk '/Mem:/ {
+          printf "%.0f", ($3/$2)*100
+        }'
+      register: ram_usage
+      changed_when: false
+
+    # --------------------------------------------------
+    # DISK
+    # --------------------------------------------------
+    - name: Collect Disk usage
+      shell: |
+        df -P / | awk 'NR==2 {
+          gsub("%","",$5);
+          print $5
+        }'
+      register: disk_usage
+      changed_when: false
+
+    # --------------------------------------------------
+    # OS
+    # --------------------------------------------------
+    - name: Collect OS information
+      shell: |
+        . /etc/os-release
+        echo "$PRETTY_NAME"
+      register: os_info
+      changed_when: false
+
+    # --------------------------------------------------
+    # UPTIME
+    # --------------------------------------------------
+    - name: Collect uptime
+      command: uptime -p
+      register: uptime_info
+      changed_when: false
+
+    # --------------------------------------------------
+    # SERVER IP
+    # --------------------------------------------------
+    - name: Collect IP address
+      shell: |
+        hostname -I | awk '{print $1}'
+      register: ip_info
+      changed_when: false
+
+    # --------------------------------------------------
+    # SSH SERVICE
+    # --------------------------------------------------
+    - name: Check SSH service
+      shell: |
+        systemctl is-active ssh
+      register: ssh_status
+      changed_when: false
+      failed_when: false
+
+    # --------------------------------------------------
+    # NGINX SERVICE
+    # --------------------------------------------------
+    - name: Check Nginx service
+      shell: |
+        systemctl is-active nginx
+      register: nginx_status
+      changed_when: false
+      failed_when: false
+
+    # --------------------------------------------------
+    # DOCKER SERVICE
+    # --------------------------------------------------
+    - name: Check Docker service
+      shell: |
+        systemctl is-active docker
+      register: docker_status
+      changed_when: false
+      failed_when: false
+
+    # --------------------------------------------------
+    # RUNNING SERVICES
+    # --------------------------------------------------
+    - name: Collect running services
+      shell: |
+        systemctl list-units --type=service --state=running --no-legend |
+        awk '{print $1}'
+      register: running_services
+      changed_when: false
+
+    # --------------------------------------------------
+    # DETERMINE SERVER HEALTH
+    # --------------------------------------------------
+    - name: Determine health status
+      set_fact:
+        health_status: >-
+          {{
+            'HEALTHY'
+            if
+            (cpu_usage.stdout | float <= cpu_threshold)
+            and
+            (ram_usage.stdout | float <= ram_threshold)
+            and
+            (disk_usage.stdout | float <= disk_threshold)
+            and
+            (ssh_status.stdout == 'active')
+            and
+            (nginx_status.stdout == 'active')
+            and
+            (docker_status.stdout == 'active')
+            else
+            'WARNING'
+          }}
+
+    # --------------------------------------------------
+    # DETERMINE ACTION
+    # --------------------------------------------------
+    - name: Determine required action
+      set_fact:
+        health_action: >-
+          {{
+            'No action required'
+            if health_status == 'HEALTHY'
+            else
+            'One or more health checks exceeded the defined thresholds'
+          }}
+
+    # --------------------------------------------------
+    # CREATE REPORT DIRECTORY ON CONTROLLER
+    # --------------------------------------------------
+    - name: Create report directory on controller
+      delegate_to: localhost
+      become: no
+      file:
+        path: "{{ playbook_dir }}/reports"
+        state: directory
+        mode: '0755'
+      run_once: true
+
+    # --------------------------------------------------
+    # GENERATE REPORT
+    # --------------------------------------------------
+    - name: Generate health report
+      delegate_to: localhost
+      become: no
+      copy:
+        content: |
+          SERVER HEALTH REPORT
+          ====================
+
+          Server: {{ inventory_hostname }}
+          IP Address: {{ ip_info.stdout }}
+
+          CPU: {{ cpu_usage.stdout }}%
+          RAM: {{ ram_usage.stdout }}%
+          Disk: {{ disk_usage.stdout }}%
+          Uptime: {{ uptime_info.stdout }}
+
+          SSH: {{ 'OK' if ssh_status.stdout == 'active' else 'NOT RUNNING' }}
+          Nginx: {{ 'RUNNING' if nginx_status.stdout == 'active' else 'NOT RUNNING' }}
+          Docker: {{ 'RUNNING' if docker_status.stdout == 'active' else 'NOT RUNNING' }}
+
+          STATUS: {{ health_status }}
+
+          ACTION: {{ health_action }}
+
+          Running Services:
+          {{ running_services.stdout }}
+
+        dest: "{{ playbook_dir }}/reports/{{ inventory_hostname }}_health_report.txt"
+
+    # --------------------------------------------------
+    # DISPLAY RESULT
+    # --------------------------------------------------
+    - name: Display health result
+      debug:
+        msg:
+          - "========================================"
+          - "SERVER: {{ inventory_hostname }}"
+          - "IP: {{ ip_info.stdout }}"
+          - "CPU: {{ cpu_usage.stdout }}%"
+          - "RAM: {{ ram_usage.stdout }}%"
+          - "DISK: {{ disk_usage.stdout }}%"
+          - "UPTIME: {{ uptime_info.stdout }}"
+          - "SSH: {{ 'OK' if ssh_status.stdout == 'active' else 'NOT RUNNING' }}"
+          - "NGINX: {{ 'RUNNING' if nginx_status.stdout == 'active' else 'NOT RUNNING' }}"
+          - "DOCKER: {{ 'RUNNING' if docker_status.stdout == 'active' else 'NOT RUNNING' }}"
+          - "STATUS: {{ health_status }}"
+          - "ACTION: {{ health_action }}"
+          - "REPORT: reports/{{ inventory_hostname }}_health_report.txt"
+          - "========================================"

@@ -1,0 +1,11 @@
+inventory
+inventory.yml
+*.retry
+*.vault
+*.vault.yml
+group_vars/**/vault.yml
+*.save
+*.backup
+*.bak
+*.healthy
+server-monitor-report.txt

@@ -1,0 +1,5 @@
+[servers]
+
+server1 ansible_host=SERVER1_IP ansible_user=USERNAME ansible_password=PASSWORD ansible_become_password=SUDO_PASSWORD
+
+server2 ansible_host=SERVER2_IP ansible_user=USERNAME ansible_password=PASSWORD ansible_become_password=SUDO_PASSWORD
