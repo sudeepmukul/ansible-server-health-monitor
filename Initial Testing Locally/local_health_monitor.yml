@@ -1,0 +1,77 @@
+---
+- name: Automated Server Health Monitoring - v1.0
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  become: yes
+
+  vars:
+    threshold: 80
+
+  tasks:
+
+    - name: Get CPU usage
+      shell: "top -bn1 | grep 'Cpu(s)' | awk '{print 100 - $8}'"
+      register: cpu_usage
+      changed_when: false
+
+    - name: Get RAM usage
+      shell: "free | awk '/Mem:/ {print ($3/$2) * 100}'"
+      register: ram_usage
+      changed_when: false
+
+    - name: Get Disk usage
+      shell: "df / | awk 'NR==2 {gsub(/%/, \"\", $5); print $5}'"
+      register: disk_usage
+      changed_when: false
+
+    - name: Check Nginx status
+      command: systemctl is-active nginx
+      register: nginx_status
+      changed_when: false
+      failed_when: false
+
+    - name: Start Nginx if stopped
+      service:
+        name: nginx
+        state: started
+      when: nginx_status.stdout != "active"
+
+    - name: Display CPU usage
+      debug:
+        msg: "CPU Usage: {{ cpu_usage.stdout }}%"
+
+    - name: Display RAM usage
+      debug:
+        msg: "RAM Usage: {{ ram_usage.stdout }}%"
+
+    - name: Display Disk usage
+      debug:
+        msg: "Disk Usage: {{ disk_usage.stdout }}%"
+
+    - name: Set WARNING status
+      set_fact:
+        health_status: "WARNING"
+      when: >
+        (cpu_usage.stdout | float > threshold) or
+        (ram_usage.stdout | float > threshold) or
+        (disk_usage.stdout | float > threshold)
+
+    - name: Set HEALTHY status
+      set_fact:
+        health_status: "HEALTHY"
+      when: >
+        (cpu_usage.stdout | float <= threshold) and
+        (ram_usage.stdout | float <= threshold) and
+        (disk_usage.stdout | float <= threshold)
+
+    - name: Get running services
+      shell: "systemctl list-units --type=service --state=running --no-pager --no-legend | awk '{print $1}'"
+      register: running_services
+      changed_when: false
+
+    - name: Generate Health Report
+      template:
+        src: report.j2
+        dest: "{{ playbook_dir }}/server_health_report.txt"
+        mode: '0644'

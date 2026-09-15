@@ -1,0 +1,71 @@
+========================================
+       SERVER HEALTH REPORT
+========================================
+
+Hostname: sudeepmukul-VirtualBox
+IP Address: 10.0.2.15
+Operating System: Ubuntu 26.04
+Uptime: 168 seconds
+
+----------------------------------------
+RESOURCE USAGE
+----------------------------------------
+
+CPU Usage: 15%
+RAM Usage: 58.7974%
+Disk Usage: 50%
+
+----------------------------------------
+NGINX STATUS
+----------------------------------------
+
+Nginx Status: active
+
+----------------------------------------
+FINAL HEALTH STATUS
+----------------------------------------
+
+STATUS: HEALTHY
+
+All monitored resources are within the safe threshold.
+
+----------------------------------------
+RUNNING SERVICES
+----------------------------------------
+
+- accounts-daemon.service
+- anacron.service
+- avahi-daemon.service
+- chrony.service
+- colord.service
+- cron.service
+- cups-browsed.service
+- cups.service
+- dbus.service
+- gdm.service
+- ModemManager.service
+- networkd-dispatcher.service
+- NetworkManager.service
+- nginx.service
+- polkit.service
+- power-profiles-daemon.service
+- rsyslog.service
+- rtkit-daemon.service
+- snapd.service
+- ssh.service
+- switcheroo-control.service
+- systemd-journald.service
+- systemd-logind.service
+- systemd-oomd.service
+- systemd-resolved.service
+- systemd-udevd.service
+- tailscaled.service
+- udisks2.service
+- unattended-upgrades.service
+- upower.service
+- user@1000.service
+- wpa_supplicant.service
+
+========================================
+       END OF HEALTH REPORT
+========================================
